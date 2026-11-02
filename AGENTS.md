@@ -4,7 +4,9 @@
 
 Este directorio corresponde al reto del Módulo 01 de OBS Business School.
 La fuente de requisitos del reto es `especificacion.md`.
-Actualmente ese archivo está vacío y el proyecto aún no contiene una implementación.
+La aplicación GastoClaro está implementada en Python y Streamlit siguiendo esa especificación.
+`app.py` contiene la interfaz; `gastoclaro.py` contiene la extracción, clasificación y exportación.
+El formato admitido es FacturaElectronica de Costa Rica v4.4, documentado en `README.md`.
 
 ## Antes de trabajar
 
@@ -31,5 +33,10 @@ Actualmente ese archivo está vacío y el proyecto aún no contiene una implemen
 
 ## Comandos del proyecto
 
-Todavía no se han definido comandos de instalación, ejecución o pruebas.
-Documentarlos aquí cuando se establezcan, basándose en la configuración real del proyecto.
+- Instalar: `python -m pip install -r requirements.txt` dentro del entorno virtual.
+- Ejecutar: `python -m streamlit run app.py`.
+- Probar: `python -m pytest -q` (requiere instalar `pytest`).
+- Mantener los cálculos monetarios en `Decimal` y las monedas separadas.
+- Enviar a la IA únicamente descripciones y categorías; nunca el XML completo ni importes o proveedores.
+- No incluir secretos; configurar `GEMINI_API_KEY` en el entorno o en los secretos de Streamlit.
+- Las pruebas no deben consumir cuota real de IA.
