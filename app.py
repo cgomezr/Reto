@@ -45,7 +45,7 @@ with st.sidebar:
     use_ai = st.toggle("Proponer categorías con IA", value=True)
     key = secret_key()
     st.caption("IA configurada" if key else "Sin clave: clasificación manual disponible")
-    st.caption("Gemini 2.5 Flash-Lite · usar una clave de un proyecto sin facturación. La aplicación no puede comprobar el nivel de la cuenta.")
+    st.caption("Gemini 3.1 Flash-Lite · usar una clave de un proyecto sin facturación. La aplicación no puede comprobar el nivel de la cuenta.")
     st.info("Solo archivos sintéticos. La IA recibe las descripciones, nunca el XML completo.")
 
 st.caption("CONTROL DE GASTOS PARA PEQUEÑOS NEGOCIOS")

@@ -94,6 +94,7 @@ def test_provider_privacy_and_response_validation():
     with patch("gastoclaro.requests.post", return_value=response) as post:
         assert ask_gemini(["Monitor"], "secret") == ["Tecnología"]
         payload = post.call_args.kwargs["json"]
+        assert post.call_args.args[0].endswith("/gemini-3.1-flash-lite:generateContent")
         assert payload["contents"] == [{"parts": [{"text": '["Monitor"]'}]}]
         assert "secret" not in str(payload)
         response.status_code = 429
@@ -107,3 +108,12 @@ def test_provider_privacy_and_response_validation():
 
 def test_csv_formula_protection():
     assert "'=HYPERLINK" in export_csv([{"Descripción": "=HYPERLINK()"}]).decode("utf-8-sig")
+
+
+@pytest.mark.parametrize("status, message", [(404, "no está disponible"), (401, "rechazó el acceso"), (403, "rechazó el acceso")])
+def test_model_and_auth_errors_are_distinct(status, message):
+    response = Mock(status_code=status)
+    with patch("gastoclaro.requests.post", return_value=response):
+        with pytest.raises(AIError, match=message) as error:
+            ask_gemini(["Monitor"], "clave-confidencial")
+        assert "clave-confidencial" not in str(error.value)

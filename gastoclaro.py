@@ -173,12 +173,19 @@ def ask_gemini(descriptions, api_key):
     }
     try:
         response = requests.post(
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent",
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
             headers={"x-goog-api-key": api_key}, json=payload, timeout=(10, 60))
     except requests.RequestException:
         raise AIError("No fue posible conectar con la IA. Puede clasificar manualmente o intentar más tarde.") from None
     if response.status_code == 429:
         raise AIError(QUOTA_MESSAGE)
+    if response.status_code == 404:
+        raise AIError("El modelo gemini-3.1-flash-lite no está disponible para este proyecto o versión de la API (HTTP 404). "
+                      "Compruebe su disponibilidad en Google AI Studio y que el despliegue tenga el código actualizado. "
+                      "Este error no confirma que la clave sea incorrecta.")
+    if response.status_code in (401, 403):
+        raise AIError(f"Gemini rechazó el acceso (HTTP {response.status_code}). "
+                      "Revise GEMINI_API_KEY en los secretos de Streamlit y los permisos o restricciones de su proyecto.")
     if response.status_code != 200:
         raise AIError(f"El servicio de IA no completó la solicitud (HTTP {response.status_code}). Revise la clave y el acceso al modelo.")
     try:

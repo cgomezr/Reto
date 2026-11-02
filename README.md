@@ -18,7 +18,7 @@ Sin clave de IA, la extracción, las correcciones, los resúmenes y el CSV funci
 
 ## Configurar la IA gratuita
 
-Se seleccionó `gemini-2.5-flash-lite`. La [tabla oficial de precios](https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-flash-lite) ofrece entrada y salida gratuitas en el nivel gratuito. Los [límites efectivos](https://ai.google.dev/gemini-api/docs/rate-limits) dependen del proyecto y se consultan en Google AI Studio. La disponibilidad debe revisarse antes de desplegar.
+Se seleccionó `gemini-3.1-flash-lite`. La [tabla oficial de precios](https://ai.google.dev/gemini-api/docs/pricing#gemini-3.1-flash-lite) ofrece entrada y salida gratuitas en el nivel gratuito. Los [límites efectivos](https://ai.google.dev/gemini-api/docs/rate-limits) dependen del proyecto y se consultan en Google AI Studio. La disponibilidad debe revisarse antes de desplegar.
 
 1. Cree una clave en [Google AI Studio](https://aistudio.google.com/apikey) para un proyecto **sin facturación habilitada**. No active servicios de pago.
 2. Copie `.streamlit/secrets.toml.example` a `.streamlit/secrets.toml` y complete `GEMINI_API_KEY`. También puede definir esa variable de entorno.
@@ -29,6 +29,8 @@ La aplicación no puede comprobar el nivel de facturación del proyecto; el requ
 La API recibe únicamente descripciones de líneas, instrucciones de clasificación y las categorías permitidas. No recibe XML, claves de factura, proveedores, fechas ni importes. Se reutilizan descripciones idénticas dentro de la sesión. Las correcciones manuales no entrenan el modelo ni modifican esa caché. Google indica que los datos del nivel gratuito pueden utilizarse para mejorar sus productos: use solo datos sintéticos.
 
 La documentación pública del proveedor se comprobó durante la implementación. La llamada real requiere una clave del usuario; las pruebas automatizadas del adaptador utilizan respuestas simuladas.
+
+Si aparece HTTP 404, revise el modelo y la versión desplegada antes de cambiar la clave. La integración se actualizó de `gemini-2.5-flash-lite` a `gemini-3.1-flash-lite` tras el retiro del modelo anterior. Suba los cambios de código al repositorio conectado y reinicie la aplicación en Streamlit si sigue ejecutando la versión anterior. Los secretos existentes se conservan; esta actualización no necesita una clave nueva. HTTP 401/403 indica un problema de acceso o permisos y HTTP 429 indica cuota agotada.
 
 ## XML admitido
 
