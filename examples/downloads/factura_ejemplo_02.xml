@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='utf-8'?>
+<FacturaElectronica xmlns="https://cdn.comprobanteselectronicos.go.cr/xml-schemas/v4.4/facturaElectronica">
+  <!--Ejemplo anonimizado derivado de un XML aportado por el usuario. Sin firma ni validez tributaria.-->
+  <Clave>00000000000000000000000000000000000000000000000102</Clave>
+  <NumeroConsecutivo>00000000000000000102</NumeroConsecutivo>
+  <FechaEmision>2026-11-01T10:00:00-06:00</FechaEmision>
+  <Emisor>
+    <Nombre>Proveedor de ejemplo 2</Nombre>
+  </Emisor>
+  <DetalleServicio>
+    <LineaDetalle>
+      <NumeroLinea>1</NumeroLinea>
+      <Cantidad>1.000</Cantidad>
+      <Detalle>ENERGIA</Detalle>
+      <SubTotal>34810.00000</SubTotal>
+      <ImpuestoNeto>4525.30000</ImpuestoNeto>
+    </LineaDetalle>
+    <LineaDetalle>
+      <NumeroLinea>2</NumeroLinea>
+      <Cantidad>1.000</Cantidad>
+      <Detalle>ALUMBRADO PUBLICO</Detalle>
+      <SubTotal>1695.00000</SubTotal>
+      <ImpuestoNeto>0.00000</ImpuestoNeto>
+    </LineaDetalle>
+    <LineaDetalle>
+      <NumeroLinea>3</NumeroLinea>
+      <Cantidad>1.000</Cantidad>
+      <Detalle>MORA MESES ANTERIORES PAGO VENCIDO.</Detalle>
+      <SubTotal>1095.00000</SubTotal>
+      <ImpuestoNeto>142.35000</ImpuestoNeto>
+    </LineaDetalle>
+  </DetalleServicio>
+  <OtrosCargos>
+    <MontoCargo>610.00000</MontoCargo>
+  </OtrosCargos>
+  <ResumenFactura>
+    <CodigoTipoMoneda>
+      <CodigoMoneda>CRC</CodigoMoneda>
+    </CodigoTipoMoneda>
+    <TotalVentaNeta>37600.00000</TotalVentaNeta>
+    <TotalImpuesto>4667.65000</TotalImpuesto>
+    <TotalComprobante>42877.65000</TotalComprobante>
+    <TotalIVADevuelto>0.00000</TotalIVADevuelto>
+  </ResumenFactura>
+</FacturaElectronica>

@@ -14,6 +14,8 @@ python -m venv .venv
 
 Abra la dirección que Streamlit muestra en la terminal. Pulse **Probar con tres facturas de ejemplo** o cargue los XML de `examples/`.
 
+La barra lateral también ofrece dos descargas individuales en **XML para probar**. Sus archivos están en `examples/downloads/` y son versiones anonimizadas de los XML aportados por el usuario, con siete y tres líneas respectivamente. Descárguelos y selecciónelos en el formulario de carga. Los originales con datos identificativos no se incluyen en el repositorio.
+
 Sin clave de IA, la extracción, las correcciones, los resúmenes y el CSV funcionan; las categorías quedan pendientes para revisión manual. No se simulan resultados de IA.
 
 ## Configurar los proveedores de IA

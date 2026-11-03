@@ -51,6 +51,16 @@ with st.sidebar:
                "Gemini: la cuota gratuita depende del proyecto. Use un proyecto sin facturación para evitar cargos.")
     st.caption("El modelo elegido se usa al procesar o reintentar líneas pendientes. Cambiarlo conserva las categorías existentes.")
     st.info("Solo archivos sintéticos. La IA recibe las descripciones, nunca el XML completo.")
+    st.divider()
+    st.subheader("XML para probar")
+    st.caption("Descarga estas facturas anonimizadas y cárgalas en el formulario para probar la aplicación.")
+    for number in (1, 2):
+        sample = Path(__file__).parent / "examples" / "downloads" / f"factura_ejemplo_{number:02}.xml"
+        st.download_button(
+            f"Descargar factura de ejemplo {number}", data=sample.read_bytes(),
+            file_name=sample.name, mime="application/xml", key=f"download_sample_{number}",
+            on_click="ignore",
+        )
 
 def classify_selected():
     # Nunca reutilizar categorías de un modelo como si provinieran de otro.

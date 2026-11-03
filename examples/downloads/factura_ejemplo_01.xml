@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='utf-8'?>
+<FacturaElectronica xmlns="https://cdn.comprobanteselectronicos.go.cr/xml-schemas/v4.4/facturaElectronica">
+  <!--Ejemplo anonimizado derivado de un XML aportado por el usuario. Sin firma ni validez tributaria.-->
+  <Clave>00000000000000000000000000000000000000000000000101</Clave>
+  <NumeroConsecutivo>00000000000000000101</NumeroConsecutivo>
+  <FechaEmision>2026-11-01T10:00:00-06:00</FechaEmision>
+  <Emisor>
+    <Nombre>Proveedor de ejemplo 1</Nombre>
+  </Emisor>
+  <DetalleServicio>
+    <LineaDetalle>
+      <NumeroLinea>1</NumeroLinea>
+      <Cantidad>2.000</Cantidad>
+      <Detalle>FRESCOLECHE DE VAINILLA DOS PINOS 9/250ML</Detalle>
+      <SubTotal>8743.36000</SubTotal>
+      <ImpuestoNeto>1136.64000</ImpuestoNeto>
+    </LineaDetalle>
+    <LineaDetalle>
+      <NumeroLinea>2</NumeroLinea>
+      <Cantidad>1.000</Cantidad>
+      <Detalle>LECHE PASTEURIZADA (SEMIDESCREMADA) 2%1/1 GL</Detalle>
+      <SubTotal>3108.91000</SubTotal>
+      <ImpuestoNeto>31.09000</ImpuestoNeto>
+    </LineaDetalle>
+    <LineaDetalle>
+      <NumeroLinea>3</NumeroLinea>
+      <Cantidad>1.660</Cantidad>
+      <Detalle>DIEZMILLO SIGNATURE NC 545-725 GR (P/KG)</Detalle>
+      <SubTotal>10195.04000</SubTotal>
+      <ImpuestoNeto>1325.36000</ImpuestoNeto>
+    </LineaDetalle>
+    <LineaDetalle>
+      <NumeroLinea>4</NumeroLinea>
+      <Cantidad>1.000</Cantidad>
+      <Detalle>BEBIDA FRESCA 1/355 ML</Detalle>
+      <SubTotal>522.12000</SubTotal>
+      <ImpuestoNeto>67.88000</ImpuestoNeto>
+    </LineaDetalle>
+    <LineaDetalle>
+      <NumeroLinea>5</NumeroLinea>
+      <Cantidad>2.000</Cantidad>
+      <Detalle>CONO KRUNCHY KRIPS 1/75 GR</Detalle>
+      <SubTotal>1362.84000</SubTotal>
+      <ImpuestoNeto>177.17000</ImpuestoNeto>
+    </LineaDetalle>
+    <LineaDetalle>
+      <NumeroLinea>6</NumeroLinea>
+      <Cantidad>1.000</Cantidad>
+      <Detalle>PALETA PINITO CORAZON DOS PINOS 1/75 GR</Detalle>
+      <SubTotal>814.16000</SubTotal>
+      <ImpuestoNeto>105.84000</ImpuestoNeto>
+    </LineaDetalle>
+    <LineaDetalle>
+      <NumeroLinea>7</NumeroLinea>
+      <Cantidad>1.000</Cantidad>
+      <Detalle>HELADO TRITS VETEADO CHOCO  1/100 GR</Detalle>
+      <SubTotal>982.30000</SubTotal>
+      <ImpuestoNeto>127.70000</ImpuestoNeto>
+    </LineaDetalle>
+  </DetalleServicio>
+  <ResumenFactura>
+    <CodigoTipoMoneda>
+      <CodigoMoneda>CRC</CodigoMoneda>
+    </CodigoTipoMoneda>
+    <TotalVentaNeta>25728.73000</TotalVentaNeta>
+    <TotalImpuesto>2971.68000</TotalImpuesto>
+    <TotalComprobante>28700.41000</TotalComprobante>
+    <TotalIVADevuelto>0.00000</TotalIVADevuelto>
+  </ResumenFactura>
+</FacturaElectronica>
