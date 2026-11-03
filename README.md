@@ -1,6 +1,6 @@
 # GastoClaro
 
-Aplicación en Python y Streamlit para consolidar facturas XML sintéticas, proponer categorías con Gemini y exportar el detalle corregido en CSV.
+Aplicación en Python y Streamlit para consolidar facturas XML sintéticas, proponer categorías con OpenAI o Gemini y exportar el detalle corregido en CSV.
 
 ## Ejecutar
 
@@ -16,23 +16,41 @@ Abra la dirección que Streamlit muestra en la terminal. Pulse **Probar con tres
 
 Sin clave de IA, la extracción, las correcciones, los resúmenes y el CSV funcionan; las categorías quedan pendientes para revisión manual. No se simulan resultados de IA.
 
-## Configurar la IA gratuita
+## Configurar los proveedores de IA
 
-Se seleccionó `gemini-3.1-flash-lite`. La [tabla oficial de precios](https://ai.google.dev/gemini-api/docs/pricing#gemini-3.1-flash-lite) ofrece entrada y salida gratuitas en el nivel gratuito. Los [límites efectivos](https://ai.google.dev/gemini-api/docs/rate-limits) dependen del proyecto y se consultan en Google AI Studio. La disponibilidad debe revisarse antes de desplegar.
+La integración utiliza la API Responses de OpenAI con `gpt-5.4-mini` y salida JSON restringida a las categorías admitidas. La API consume créditos o saldo según el uso; la aplicación no puede consultar el saldo de su cuenta. El cambio de Gemini a OpenAI fue solicitado por el usuario y sustituye el requisito original de cuota gratuita.
 
-1. Cree una clave en [Google AI Studio](https://aistudio.google.com/apikey) para un proyecto **sin facturación habilitada**. No active servicios de pago.
-2. Copie `.streamlit/secrets.toml.example` a `.streamlit/secrets.toml` y complete `GEMINI_API_KEY`. También puede definir esa variable de entorno.
-3. Reinicie Streamlit y active **Proponer categorías con IA**.
+1. Cree una clave del proyecto en [OpenAI API Keys](https://platform.openai.com/api-keys) y compruebe los créditos en [Billing](https://platform.openai.com/settings/organization/billing/overview).
+2. En local, copie `.streamlit/secrets.toml.example` a `.streamlit/secrets.toml` y configure `OPENAI_API_KEY`. También puede definir esa variable de entorno.
+3. En Streamlit Community Cloud, abra **Settings → Secrets** y guarde:
 
-La aplicación no puede comprobar el nivel de facturación del proyecto; el requisito de coste cero depende de usar esa configuración gratuita. No cambia de modelo ni activa servicios de pago ante errores. HTTP 429 muestra el mensaje de cuota de la especificación y conserva las extracciones y clasificaciones completadas. Puede reintentar las líneas pendientes.
+```toml
+OPENAI_API_KEY = "su_clave_de_openai"
+```
 
-La API recibe únicamente descripciones de líneas, instrucciones de clasificación y las categorías permitidas. No recibe XML, claves de factura, proveedores, fechas ni importes. Se reutilizan descripciones idénticas dentro de la sesión. Las correcciones manuales no entrenan el modelo ni modifican esa caché. Google indica que los datos del nivel gratuito pueden utilizarse para mejorar sus productos: use solo datos sintéticos.
+4. Suba los cambios de código al repositorio conectado y reinicie la app si continúa mostrando Gemini. Puede conservar `GEMINI_API_KEY` junto con `OPENAI_API_KEY` para elegir el proveedor en la barra lateral.
+5. Procese los ejemplos con **Proponer categorías con IA** activado.
 
-La documentación pública del proveedor se comprobó durante la implementación. La llamada real requiere una clave del usuario; las pruebas automatizadas del adaptador utilizan respuestas simuladas.
+El selector **Modelo de IA** permite elegir **OpenAI · GPT-5.4 mini** o **Gemini · 3.1 Flash-Lite**. Configure solo la clave del proveedor que utilice, o ambas:
 
-Si aparece HTTP 404, revise el modelo y la versión desplegada antes de cambiar la clave. La integración se actualizó de `gemini-2.5-flash-lite` a `gemini-3.1-flash-lite` tras el retiro del modelo anterior. Suba los cambios de código al repositorio conectado y reinicie la aplicación en Streamlit si sigue ejecutando la versión anterior. Los secretos existentes se conservan; esta actualización no necesita una clave nueva. HTTP 401/403 indica un problema de acceso o permisos y HTTP 429 indica cuota agotada.
+```toml
+OPENAI_API_KEY = "su_clave_de_openai"
+GEMINI_API_KEY = "su_clave_de_gemini"
+```
+
+OpenAI es la opción inicial. Gemini utiliza `gemini-3.1-flash-lite` con `GEMINI_API_KEY`, creada en Google AI Studio. Para evitar cargos en Gemini, use un proyecto sin facturación; la cuota gratuita y la disponibilidad dependen del proveedor. Si no está la clave del modelo elegido, puede trabajar manualmente. No se cambia de proveedor automáticamente ante errores.
+
+Cambiar el selector no envía solicitudes ni elimina datos. El modelo elegido se aplica al siguiente procesamiento o al reintento de líneas pendientes. Las líneas completadas y las correcciones manuales se conservan; para comparar la misma factura entre modelos, descargue su CSV y procese un nuevo lote. La caché se separa por proveedor y modelo. La columna **Modelo IA** conserva el origen de la propuesta en el detalle y CSV; una corrección manual se identifica en **Estado**.
+
+La API recibe únicamente descripciones de líneas, instrucciones y categorías. No recibe XML, claves de factura, proveedores, fechas ni importes. En OpenAI se usa `store=false`; no se habilitan herramientas externas en ningún proveedor. Las descripciones idénticas reutilizan su categoría durante la sesión. Las correcciones manuales no entrenan el modelo ni modifican esa caché. Use solamente XML sintéticos.
+
+El procesamiento usa lotes de hasta 25 descripciones, un máximo de 2000 tokens de salida por solicitud y razonamiento desactivado en OpenAI. Estos límites reducen consumo, pero no constituyen un presupuesto monetario global. Consulte las [tarifas del modelo](https://developers.openai.com/api/docs/models/gpt-5.4-mini) y el [consumo de la cuenta](https://platform.openai.com/usage).
+
+HTTP 401/403 indica problemas de acceso; 404 indica un modelo no disponible; 429 informa sobre cuota, saldo o límite de solicitudes. Si OpenAI devuelve `insufficient_quota`, se indica que revise Billing. Los datos y las clasificaciones completadas se conservan y puede continuar manualmente. Las pruebas usan respuestas simuladas y no consumen créditos; la llamada real debe comprobarse en el despliegue con su clave.
 
 ## XML admitido
+
+Ante errores temporales HTTP 500/502/503/504, se realizan como máximo tres intentos, con esperas de uno y dos segundos. Si el servicio sigue sin estar disponible, los datos y las clasificaciones completadas permanecen en la sesión y el usuario puede reintentar las líneas pendientes o clasificarlas manualmente. No se reintentan automáticamente errores de cuota ni de acceso.
 
 Se admite exclusivamente raíz `FacturaElectronica` y espacio de nombres:
 
@@ -82,7 +100,7 @@ Se verifican extracción, importes esperados, monedas separadas, duplicados, XML
 
 1. Suba este proyecto a un repositorio de GitHub sin incluir secretos ni `.venv`.
 2. En [Streamlit Community Cloud](https://share.streamlit.io/) seleccione el repositorio y `app.py` como archivo principal.
-3. Configure `GEMINI_API_KEY` en los secretos de la aplicación, usando un proyecto sin facturación.
+3. Configure `OPENAI_API_KEY` en los secretos de la aplicación y verifique los créditos disponibles.
 4. Verifique los ejemplos y las cuotas del proveedor antes de utilizarla.
 
 ## Archivos

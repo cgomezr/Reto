@@ -1,13 +1,19 @@
+import json
 from decimal import Decimal
 from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
 
-from gastoclaro import (AIError, CATEGORIES, OTHER, QUOTA_MESSAGE, ask_gemini,
-                       classify, export_csv, grouped, process_files)
+from gastoclaro import (AIError, CATEGORIES, OTHER, QUOTA_MESSAGE, ask_openai,
+                       ask_gemini, GEMINI_MODEL, classify, export_csv, grouped, process_files)
 
 EXAMPLES = Path(__file__).resolve().parents[1] / "examples"
+
+
+def openai_response(categories):
+    return {"status": "completed", "output": [{"type": "message", "content": [
+        {"type": "output_text", "text": json.dumps({"categories": categories})}]}]}
 
 
 def files():
@@ -90,20 +96,24 @@ def test_quota_retains_completed_batches():
 
 def test_provider_privacy_and_response_validation():
     response = Mock(status_code=200)
-    response.json.return_value = {"candidates": [{"content": {"parts": [{"text": '["Tecnología"]'}]}}]}
+    response.json.return_value = openai_response(["Tecnología"])
     with patch("gastoclaro.requests.post", return_value=response) as post:
-        assert ask_gemini(["Monitor"], "secret") == ["Tecnología"]
+        assert ask_openai(["Monitor"], "secret") == ["Tecnología"]
         payload = post.call_args.kwargs["json"]
-        assert post.call_args.args[0].endswith("/gemini-3.1-flash-lite:generateContent")
-        assert payload["contents"] == [{"parts": [{"text": '["Monitor"]'}]}]
+        assert post.call_args.args[0] == "https://api.openai.com/v1/responses"
+        assert payload["input"] == '["Monitor"]'
+        assert payload["model"] == "gpt-5.4-mini"
+        assert payload["store"] is False
+        assert payload["text"]["format"]["strict"] is True
+        assert post.call_args.kwargs["headers"]["Authorization"] == "Bearer secret"
         assert "secret" not in str(payload)
         response.status_code = 429
-        with pytest.raises(AIError, match="Se agotó"):
-            ask_gemini(["Monitor"], "secret")
+        with pytest.raises(AIError, match="cuota"):
+            ask_openai(["Monitor"], "secret")
         response.status_code = 200
-        response.json.return_value = {"candidates": [{"content": {"parts": [{"text": '["Inventada"]'}]}}]}
+        response.json.return_value = openai_response(["Inventada"])
         with pytest.raises(AIError, match="inválida"):
-            ask_gemini(["Monitor"], "secret")
+            ask_openai(["Monitor"], "secret")
 
 
 def test_csv_formula_protection():
@@ -115,5 +125,99 @@ def test_model_and_auth_errors_are_distinct(status, message):
     response = Mock(status_code=status)
     with patch("gastoclaro.requests.post", return_value=response):
         with pytest.raises(AIError, match=message) as error:
-            ask_gemini(["Monitor"], "clave-confidencial")
+            ask_openai(["Monitor"], "clave-confidencial")
         assert "clave-confidencial" not in str(error.value)
+
+
+def test_temporary_service_failure_recovers():
+    success = Mock(status_code=200)
+    success.json.return_value = openai_response(["Tecnología"])
+    with patch("gastoclaro.requests.post", side_effect=[Mock(status_code=503), success]) as post, \
+            patch("gastoclaro.time.sleep") as sleep:
+        assert ask_openai(["Monitor"], "test") == ["Tecnología"]
+        assert post.call_count == 2
+        sleep.assert_called_once_with(1)
+
+
+def test_temporary_service_failure_is_bounded_and_preserves_data():
+    lines = [{"Descripción": "Monitor", "Categoría": OTHER, "Estado": "Pendiente", "Revisión": ""},
+             {"Descripción": "Papel", "Categoría": CATEGORIES[4], "Estado": "Manual", "Revisión": ""}]
+    with patch("gastoclaro.requests.post", return_value=Mock(status_code=503)) as post, \
+            patch("gastoclaro.time.sleep") as sleep:
+        message = classify(lines, {}, "test")
+        assert "temporalmente" in message
+        assert post.call_count == 3
+        assert [call.args[0] for call in sleep.call_args_list] == [1, 2]
+        assert lines[0]["Estado"] == "Pendiente"
+        assert lines[1]["Categoría"] == CATEGORIES[4]
+
+
+def test_quota_does_not_trigger_automatic_retries():
+    with patch("gastoclaro.requests.post", return_value=Mock(status_code=429)) as post, \
+            patch("gastoclaro.time.sleep") as sleep:
+        with pytest.raises(AIError, match="cuota"):
+            ask_openai(["Monitor"], "test")
+        post.assert_called_once()
+        sleep.assert_not_called()
+
+
+@pytest.mark.parametrize("body", [
+    {"status": "incomplete", "output": []},
+    {"status": "completed", "output": [{"type": "message", "content": [{"type": "refusal", "refusal": "No"}]}]},
+    openai_response([]),
+    openai_response(["Inventada"]),
+    {"status": "completed", "output": [{"type": "message", "content": [{"type": "output_text", "text": "no es JSON"}]}]},
+])
+def test_invalid_or_incomplete_openai_output_stays_pending(body):
+    response = Mock(status_code=200)
+    response.json.return_value = body
+    lines = [{"Descripción": "Monitor", "Categoría": OTHER, "Estado": "Pendiente", "Revisión": ""}]
+    with patch("gastoclaro.requests.post", return_value=response):
+        assert "inválida" in classify(lines, {}, "test")
+    assert lines[0]["Estado"] == "Pendiente"
+
+
+def test_insufficient_credit_message_and_no_retry():
+    response = Mock(status_code=429)
+    response.json.return_value = {"error": {"code": "insufficient_quota"}}
+    with patch("gastoclaro.requests.post", return_value=response) as post:
+        with pytest.raises(AIError, match="no hay créditos"):
+            ask_openai(["Monitor"], "test")
+    post.assert_called_once()
+
+
+def test_gemini_routes_only_its_key_and_descriptions():
+    response = Mock(status_code=200)
+    response.json.return_value = {"candidates": [{"finishReason": "STOP", "content": {"parts": [{"text": '["Tecnología"]'}]}}]}
+    lines = [{"Descripción": "Monitor", "Categoría": OTHER, "Estado": "Pendiente", "Revisión": ""}]
+    with patch("gastoclaro.requests.post", return_value=response) as post:
+        assert classify(lines, {}, "gemini-test-key", provider="Gemini", model=GEMINI_MODEL) == ""
+        assert "generativelanguage.googleapis.com" in post.call_args.args[0]
+        assert post.call_args.kwargs["headers"] == {"x-goog-api-key": "gemini-test-key"}
+        payload = post.call_args.kwargs["json"]
+        assert payload["contents"] == [{"parts": [{"text": '["Monitor"]'}]}]
+        assert "gemini-test-key" not in str(payload)
+        assert lines[0]["Modelo IA"] == GEMINI_MODEL
+
+
+@pytest.mark.parametrize("status", [429, 401, 404, 503])
+def test_gemini_errors_preserve_pending_without_provider_fallback(status):
+    response = Mock(status_code=status)
+    lines = [{"Descripción": "Monitor", "Categoría": OTHER, "Estado": "Pendiente", "Revisión": ""}]
+    with patch("gastoclaro.requests.post", return_value=response) as post, patch("gastoclaro.time.sleep"):
+        assert classify(lines, {}, "test", provider="Gemini")
+        assert lines[0]["Estado"] == "Pendiente"
+        assert all("googleapis.com" in c.args[0] for c in post.call_args_list)
+        assert post.call_count == (3 if status == 503 else 1)
+
+
+def test_gemini_invalid_output_and_missing_key():
+    response = Mock(status_code=200)
+    response.json.return_value = {"candidates": [{"finishReason": "MAX_TOKENS", "content": {"parts": [{"text": '["Tecnología"]'}]}}]}
+    with patch("gastoclaro.requests.post", return_value=response):
+        with pytest.raises(AIError, match="incompleta"):
+            ask_gemini(["Monitor"], "test")
+    with patch("gastoclaro.requests.post") as post:
+        lines = [{"Descripción": "Monitor", "Categoría": OTHER, "Estado": "Pendiente", "Revisión": ""}]
+        assert "clave" in classify(lines, {}, "", provider="Gemini")
+        post.assert_not_called()

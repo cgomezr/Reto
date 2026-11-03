@@ -38,5 +38,7 @@ El formato admitido es FacturaElectronica de Costa Rica v4.4, documentado en `RE
 - Probar: `python -m pytest -q` (requiere instalar `pytest`).
 - Mantener los cálculos monetarios en `Decimal` y las monedas separadas.
 - Enviar a la IA únicamente descripciones y categorías; nunca el XML completo ni importes o proveedores.
-- No incluir secretos; configurar `GEMINI_API_KEY` en el entorno o en los secretos de Streamlit.
+- No incluir secretos; configurar `OPENAI_API_KEY` y/o `GEMINI_API_KEY` en el entorno o en los secretos de Streamlit.
 - Las pruebas no deben consumir cuota real de IA.
+
+- Mantener la caché separada por proveedor y modelo. No cambiar de proveedor automáticamente ante errores.

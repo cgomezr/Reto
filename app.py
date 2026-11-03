@@ -8,17 +8,17 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from gastoclaro import CATEGORIES, OTHER, classify, export_csv, grouped, process_files
+from gastoclaro import AI_MODELS, CATEGORIES, OTHER, classify, export_csv, grouped, process_files
 
 st.set_page_config(page_title="GastoClaro · Control de gastos", page_icon="🌿", layout="wide")
 
 
-def secret_key():
-    value = os.getenv("GEMINI_API_KEY", "")
+def secret_key(name):
+    value = os.getenv(name, "").strip()
     if value:
         return value
     try:
-        return st.secrets.get("GEMINI_API_KEY", "")
+        return str(st.secrets.get(name, "")).strip()
     except (FileNotFoundError, st.errors.StreamlitSecretNotFoundError):
         return ""
 
@@ -43,10 +43,19 @@ with st.sidebar:
     st.markdown("**Tu flujo de trabajo**\n\n1. Carga tus XML\n2. Revisa las categorías\n3. Consulta y descarga")
     st.divider()
     use_ai = st.toggle("Proponer categorías con IA", value=True)
-    key = secret_key()
-    st.caption("IA configurada" if key else "Sin clave: clasificación manual disponible")
-    st.caption("Gemini 3.1 Flash-Lite · usar una clave de un proyecto sin facturación. La aplicación no puede comprobar el nivel de la cuenta.")
+    selection = st.selectbox("Modelo de IA", list(AI_MODELS), key="ai_selection")
+    provider, model, key_name = AI_MODELS[selection]
+    key = secret_key(key_name)
+    st.caption(f"{provider}: clave configurada" if key else f"Falta {key_name}. Clasificación manual disponible.")
+    st.caption("OpenAI consume créditos o saldo." if provider == "OpenAI" else
+               "Gemini: la cuota gratuita depende del proyecto. Use un proyecto sin facturación para evitar cargos.")
+    st.caption("El modelo elegido se usa al procesar o reintentar líneas pendientes. Cambiarlo conserva las categorías existentes.")
     st.info("Solo archivos sintéticos. La IA recibe las descripciones, nunca el XML completo.")
+
+def classify_selected():
+    # Nunca reutilizar categorías de un modelo como si provinieran de otro.
+    cache = st.session_state.cache.setdefault((provider, model), {})
+    return classify(st.session_state.lines, cache, key, provider=provider, model=model)
 
 st.caption("CONTROL DE GASTOS PARA PEQUEÑOS NEGOCIOS")
 st.title("Tus facturas, en claro.")
@@ -74,7 +83,7 @@ if process or demo:
         st.session_state.lines = [line for invoice in invoices for line in invoice.lines]
         st.session_state.version += 1
         with st.spinner("Extrayendo datos y proponiendo categorías…"):
-            st.session_state.notice = (classify(st.session_state.lines, st.session_state.cache, key)
+            st.session_state.notice = (classify_selected()
                                        if use_ai else "Clasificación manual seleccionada.")
         st.session_state.editor_baseline = deepcopy(st.session_state.lines)
 
@@ -103,7 +112,7 @@ edited = st.data_editor(
     column_config={"Categoría": st.column_config.SelectboxColumn("Categoría", options=CATEGORIES, required=True),
                    "Revisada": st.column_config.CheckboxColumn("Revisada", required=True)},
     column_order=["Descripción", "Categoría", "Revisada", "Proveedor", "Moneda", "Gasto sin impuestos",
-                  "Impuesto de línea", "Estado", "Revisión", "Archivo", "Línea", "Clave", "Fecha", "Cantidad"],
+                  "Impuesto de línea", "Estado", "Modelo IA", "Revisión", "Archivo", "Línea", "Clave", "Fecha", "Cantidad"],
 )
 for line, (_, row) in zip(st.session_state.lines, edited.iterrows()):
     if row["Categoría"] in CATEGORIES and row["Categoría"] != line["Categoría"]:
@@ -121,14 +130,14 @@ if pending:
         st.dataframe(table(pending), hide_index=True, use_container_width=True)
 if use_ai and st.button("Reintentar IA en líneas pendientes", disabled=not any(x["Estado"] == "Pendiente" for x in st.session_state.lines)):
     with st.spinner("Consultando IA…"):
-        st.session_state.notice = classify(st.session_state.lines, st.session_state.cache, key)
+        st.session_state.notice = classify_selected()
     st.session_state.version += 1
     st.session_state.editor_baseline = deepcopy(st.session_state.lines)
     st.rerun()
 
 st.subheader("3 · Entiende tus gastos")
 currencies = sorted({x["Moneda"] for x in st.session_state.lines})
-currency = st.selectbox("Moneda del resumen", currencies)
+currency = st.selectbox("Moneda del resumen", currencies, key="summary_currency")
 lines = [x for x in st.session_state.lines if x["Moneda"] == currency]
 invoices = [x for x in st.session_state.invoices if x.currency == currency]
 cols = st.columns(3)

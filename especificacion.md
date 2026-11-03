@@ -23,7 +23,7 @@ Este trabajo consume tiempo y dificulta identificar en qué se gasta más. La ap
 
 ## 4. La pieza de IA
 
-Se utilizará **la API de un LLM con cuota gratuita**, seleccionada y comprobada antes de implementar la integración.
+El usuario podrá seleccionar **OpenAI con GPT-5.4 mini** o **Gemini con 3.1 Flash-Lite**. Cada proveedor usa su propia clave. OpenAI consume créditos o saldo; Gemini puede utilizar la cuota gratuita de un proyecto sin facturación. No se cambia de proveedor automáticamente.
 
 El modelo recibirá únicamente las descripciones de los productos o servicios y una lista cerrada de categorías:
 
@@ -50,7 +50,7 @@ Devolverá la categoría propuesta para cada descripción. Se utilizará un LLM 
 ## 6. Restricciones
 
 - **Despliegue:** sería en streamlit.io con código generado en python, en el archivo app.py
-- **Coste cero:** utilizar herramientas gratuitas y una cuota gratuita del proveedor de IA, sin activar servicios de pago. Si la cuota disponible no permite completar el procesamiento, se informará al usuario.
+- **Coste de IA:** utilizar los créditos o el saldo de la API de OpenAI configurada por el usuario. Reutilizar descripciones repetidas y limitar las respuestas para reducir consumo. Si no hay cuota o saldo disponible, informar y permitir la clasificación manual.
 - **Clave protegida:** almacenarla en secretos o variables de entorno, nunca en el código ni en el repositorio.
 - **Sin datos personales reales:** utilizar XML sintéticos con proveedores, identificadores y descripciones ficticios.
 - **Datos mínimos para la IA:** enviar únicamente las descripciones necesarias para clasificar.
@@ -67,7 +67,7 @@ Devolverá la categoría propuesta para cada descripción. Se utilizará un LLM 
 - **Caso límite — descripción ambigua:** una línea no permite determinar su categoría → queda como «Otros / requiere revisión».
 - **Caso límite — monedas distintas:** se cargan facturas en colones y dólares → se presentan totales separados por moneda.
 - **Archivo inválido:** se carga un XML mal formado o de un tipo no admitido → se identifica el archivo y se explica el problema; los demás archivos válidos continúan procesándose.
-- **Error — se acaba la cuota:** se muestra: «Se agotó la cuota gratuita del servicio de IA. Puede revisar y clasificar manualmente las líneas pendientes o intentar nuevamente más tarde». Los datos extraídos y las clasificaciones completadas permanecen disponibles durante la sesión.
+- **Error — se acaba la cuota:** se muestra: «Se alcanzó la cuota o el límite de solicitudes del servicio de IA. Puede revisar y clasificar manualmente las líneas pendientes o intentar nuevamente más tarde». Los datos extraídos y las clasificaciones completadas permanecen disponibles durante la sesión.
 
 ## 8. Fuera de alcance
 
