@@ -2,6 +2,46 @@
 
 Aplicación en Python y Streamlit para consolidar facturas XML sintéticas, proponer categorías con OpenAI o Gemini y exportar el detalle corregido en CSV.
 
+**App desplegada:** https://reto-cgomezr.streamlit.app/
+**Repositorio:** https://github.com/cgomezr/Reto
+**Autor/a:** Carlos Gómez Rodríguez.
+
+## Entrega académica
+
+La entrega para la Actividad Sesión 4 está en [entrega_final.docx](entrega_final.docx), con fuente editable en [entrega_final.md](entrega_final.md). Contiene los ocho apartados de la plantilla y las instrucciones para conseguir las cuatro capturas. Antes de entregar, completar los campos PENDIENTE con tres a cinco prompts literales y documentar una prueba concreta, su resultado y la mejora que motivó. Añadir las capturas sin mostrar claves ni datos sensibles.
+
+## Problema y propuesta
+
+La persona que controla los gastos de un pequeño negocio revisa XML individuales y registra las compras en una hoja de cálculo. GastoClaro reúne las facturas, extrae sus líneas y permite revisar las categorías antes de exportarlas. La IA interpreta las descripciones; Python valida y calcula los importes. No se realizan validaciones tributarias ni conversiones de moneda.
+
+## Pitch
+
+1. Registrar y clasificar facturas XML manualmente consume tiempo al responsable de un pequeño negocio.
+2. GastoClaro consolida las facturas, permite corregir sus categorías y exporta un CSV.
+3. La IA interpreta descripciones variadas y propone categorías sin construir reglas para cada producto.
+4. He usado la aplicación sin realizar pruebas exhaustivas; aún debo documentar un caso concreto, lo aprendido y una mejora basada en esa prueba.
+5. El siguiente paso sería medir cuántas de las cinco líneas sintéticas necesitan corrección al comparar cada modelo con una clasificación manual.
+
+## Proceso con IA y prueba de usuario
+
+- Herramienta de asistencia: Codex. Contexto: [AGENTS.md](AGENTS.md). Requisitos: [especificacion.md](especificacion.md).
+- Prompts clave: [PENDIENTE: transcribir entre tres y cinco prompts originales en el apartado 5 de la entrega].
+- Delegación en esta preparación: revisión de correspondencia con el código, ejecución de pruebas y elaboración de la documentación.
+- Revisión manual: He usado la aplicación, pero no he realizado pruebas exhaustivas. Queda pendiente documentar los casos revisados.
+
+| Quién la probó | Qué probó | Qué pasó | Qué cambié |
+| --- | --- | --- | --- |
+| Carlos Gómez Rodríguez | Uso personal de la aplicación, sin pruebas exhaustivas | He utilizado la aplicación; no se han documentado resultados específicos de prueba | No se ha documentado una mejora derivada de esta revisión |
+
+## Capturas para la entrega
+
+1. Caso principal: tres ejemplos, cinco líneas y resumen de una moneda.
+2. Caso límite: rechazo de un XML mal formado junto con archivos válidos.
+3. Trabajo con IA: prompt original y respuesta del agente.
+4. Prueba: comentario de un compañero o caso personal que motivó una mejora.
+
+Los espacios e instrucciones están en el apartado 8 de la entrega.
+
 ## Ejecutar
 
 Se recomienda Python 3.12 o superior.

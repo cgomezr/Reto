@@ -7,6 +7,8 @@ La fuente de requisitos del reto es `especificacion.md`.
 La aplicación GastoClaro está implementada en Python y Streamlit siguiendo esa especificación.
 `app.py` contiene la interfaz; `gastoclaro.py` contiene la extracción, clasificación y exportación.
 El formato admitido es FacturaElectronica de Costa Rica v4.4, documentado en `README.md`.
+La entrega académica está en `entrega_final.docx`, con fuente editable en `entrega_final.md`.
+Mantener sus ocho apartados en el orden de la plantilla. No inventar nombres, URL de despliegue, prompts históricos ni pruebas personales; marcar los datos pendientes y reservar cuatro espacios para capturas.
 
 ## Antes de trabajar
 

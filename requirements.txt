@@ -1,3 +1,5 @@
+# Dependencias de ejecución y despliegue de GastoClaro.
+# Las APIs de IA se consumen con requests; pytest se instala aparte para pruebas.
 streamlit>=1.42,<2
 pandas>=2.2,<4
 defusedxml==0.7.1
